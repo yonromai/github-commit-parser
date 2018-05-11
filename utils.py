@@ -1,26 +1,24 @@
 # -*- coding: utf-8 -*-
-import os
 import subprocess
 import sys
 
 
 def run_shell_cmd(cmd,
-                  silent_stdout=True,
-                  silend_stderr=False,
                   cwd=None,
-                  dry_run=False):
-    if dry_run:
+                  verbose=False):
+    if verbose:
         print("Running command:")
         print("```")
         print(cmd)
         print("```")
-        return
 
-    with open(os.devnull, 'w') as devnull:
-        r = subprocess.Popen(["sh", "-c", cmd],
-                             stdout=devnull if silent_stdout else None,
-                             stderr=devnull if silend_stderr else None,
-                             cwd=cwd)
-        r.wait()
-        if r.returncode != 0:
-            sys.exit(r.returncode)
+    r = subprocess.Popen(["sh", "-c", cmd],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         cwd=cwd)
+    out, err = r.communicate()
+    if len(err.strip()) > 0:
+        print(err)
+    if r.returncode != 0:
+        sys.exit(r.returncode)
+    return out
